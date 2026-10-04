@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">火花助手</string>
+    <string name="a11y_desc">用于在本人账号上执行自动点击（点赞）操作</string>
+</resources>
