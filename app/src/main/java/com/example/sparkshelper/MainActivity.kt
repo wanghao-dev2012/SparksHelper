@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
                     lifecycleScope.launch {
                         val targets = TargetStore.load(this@MainActivity)
                         if (targets.isEmpty()) {
-                            Toast.makeText(this, "名单为空，请先添加", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@MainActivity, "名单为空，请先添加", Toast.LENGTH_SHORT).show()
                         } else {
                             val dm = resources.displayMetrics
                             svc.runTask(dm.widthPixels, dm.heightPixels, targets)

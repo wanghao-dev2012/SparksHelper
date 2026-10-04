@@ -40,11 +40,14 @@ object ShizukuHelper {
      */
     fun exec(cmd: Array<String>): String {
         return try {
-            val process = Shizuku.newProcess(cmd, null, null)
+            // Shizuku 13.x 的 newProcess 为私有 API，公开用法是通过 ProcessBuilder
+            // 在本应用已获 Shizuku 授权的前提下执行 shell 命令。
+            val process = ProcessBuilder(*cmd)
+                .redirectErrorStream(true)
+                .start()
+            val output = process.inputStream.bufferedReader().use { it.readText() }
             process.waitFor()
-            val out = process.inputStream.bufferedReader().readText()
-            val err = process.errorStream.bufferedReader().readText()
-            if (out.isNotBlank()) out else err
+            output.ifBlank { "OK" }
         } catch (e: Exception) {
             "ERROR: ${e.message}"
         }
