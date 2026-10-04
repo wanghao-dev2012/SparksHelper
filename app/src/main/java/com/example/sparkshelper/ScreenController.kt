@@ -64,6 +64,30 @@ object ScreenController {
     fun tap(x: Int, y: Int): String =
         ShizukuHelper.exec(arrayOf("sh", "-c", "input tap $x $y"))
 
+    /**
+     * 视觉定位点击：把当前屏幕截图交给 deepseek-flash，让它返回控件坐标，再 input tap。
+     *
+     * @param targetDesc 自然语言描述，例如"会话列表右上角的搜索图标"
+     * @param fallbackX  视觉失败时的兜底坐标
+     * @param fallbackY  视觉失败时的兜底坐标
+     * @return 人类可读的执行结果
+     */
+    fun tapByVision(targetDesc: String, fallbackX: Int, fallbackY: Int): String {
+        return try {
+            val r = VisionClient.locate(targetDesc)
+            if (r.found && r.x > 0 && r.y > 0) {
+                tap(r.x, r.y)
+                "视觉命中「$targetDesc」→ tap(${r.x},${r.y}) ; ${r.desc}"
+            } else {
+                tap(fallbackX, fallbackY)
+                "视觉未命中「$targetDesc」（${r.desc}），回退坐标 tap($fallbackX,$fallbackY)"
+            }
+        } catch (e: Exception) {
+            tap(fallbackX, fallbackY)
+            "视觉异常（${e.message}），回退坐标 tap($fallbackX,$fallbackY)"
+        }
+    }
+
     // ==================== 解锁坐标（Mate 40 实测） ====================
 
     /** 上滑解锁：起点 */

@@ -118,29 +118,57 @@ class SparkService : AccessibilityService() {
      * @return true 表示已进入聊天页
      */
     private fun searchAndOpenDM(name: String): Boolean {
-        // 1. 点搜索图标
-        ScreenController.tap(ScreenController.SEARCH_ICON_X, ScreenController.SEARCH_ICON_Y)
+        // 1. 点搜索图标（视觉定位 → 固定坐标兜底）
+        logMsg("① 定位搜索图标…")
+        logMsg(
+            ScreenController.tapByVision(
+                "多闪会话列表页面，右上角的搜索图标（放大镜）",
+                ScreenController.SEARCH_ICON_X,
+                ScreenController.SEARCH_ICON_Y
+            )
+        )
         Thread.sleep(1000)
 
-        // 2. 点搜索输入框
-        ScreenController.tap(ScreenController.SEARCH_BOX_X, ScreenController.SEARCH_BOX_Y)
+        // 2. 点搜索输入框（视觉定位 → 兜底）
+        logMsg("② 定位搜索输入框…")
+        logMsg(
+            ScreenController.tapByVision(
+                "多闪搜索页顶部，写着\"搜索\"的文本输入框",
+                ScreenController.SEARCH_BOX_X,
+                ScreenController.SEARCH_BOX_Y
+            )
+        )
         Thread.sleep(600)
 
-        // 3. 输入名字：优先无障碍写入，抓不到输入框则用 input text 直接敲
+        // 3. 输入名字：优先无障碍写入（中文必须走 ACTION_SET_TEXT），抓不到再兜底
         val box = findEditText(rootInActiveWindow)
         if (box != null) {
             setText(box, name)
+            logMsg("③ 已通过无障碍写入名字：$name")
         } else {
-            // 兜底：用 shell input text 输入（中文需用 setText，故这颗兜底只对英文有效）
+            // 兜底：用 shell input text（仅英文有效）
             ShizukuHelper.exec(arrayOf("sh", "-c", "input text '$name'"))
+            logMsg("③ 无障碍未抓到输入框，回退 input text（中文无效）：$name")
         }
-        Thread.sleep(1500) // 等搜索结果
+        Thread.sleep(1800) // 等搜索结果
 
-        // 4. 点第一条联系人的「发私信」按钮
-        ScreenController.tap(ScreenController.SEND_DM_X, ScreenController.SEND_DM_Y)
-        Thread.sleep(1500) // 等进入聊天页
+        // 4. 点第一条联系人的「发私信」按钮（视觉定位 → 兜底）
+        logMsg("④ 定位第一条联系人的「发私信」按钮…")
+        logMsg(
+            ScreenController.tapByVision(
+                "搜索结果中第一条联系人右侧的「发私信」按钮（用于给他发私信）",
+                ScreenController.SEND_DM_X,
+                ScreenController.SEND_DM_Y
+            )
+        )
+        Thread.sleep(1600) // 等进入聊天页
 
         return true
+    }
+
+    /** 简单日志（logcat tag: SparksHelper） */
+    private fun logMsg(msg: String) {
+        android.util.Log.i("SparksHelper", msg)
     }
 
     // ==================== 发送续火花 ====================
