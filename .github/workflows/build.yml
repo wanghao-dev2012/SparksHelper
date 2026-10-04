@@ -20,13 +20,26 @@ jobs:
           java-version: '17'
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        run: |
+          set +e
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          SDKMGR="$(find $ANDROID_HOME/cmdline-tools -name sdkmanager 2>/dev/null | head -1)"
+          if [ -z "$SDKMGR" ]; then SDKMGR="$(command -v sdkmanager)"; fi
+          echo "SDKMGR=$SDKMGR"
+          yes | "$SDKMGR" --sdk_root="$ANDROID_HOME" --licenses > /dev/null 2>&1 || true
+          "$SDKMGR" --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-35" "build-tools;35.0.0" || \
+          "$SDKMGR" --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "--- SDK dirs ---"
+          ls "$ANDROID_HOME/platforms" 2>/dev/null
+          ls "$ANDROID_HOME/build-tools" 2>/dev/null
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew || true
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
