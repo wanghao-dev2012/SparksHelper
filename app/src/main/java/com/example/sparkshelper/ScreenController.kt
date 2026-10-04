@@ -39,11 +39,26 @@ object ScreenController {
         )
     }
 
-    /** 用 monkey 启动多闪 */
-    fun launchTargetApp(): String =
-        ShizukuHelper.exec(
+    /**
+     * 启动多闪。
+     * 优先用 am start 拉起主 Activity（比 monkey 更可靠），
+     * 失败再用 monkey 兜底。
+     */
+    fun launchTargetApp(): String {
+        val byAm = ShizukuHelper.exec(
+            arrayOf(
+                "sh", "-c",
+                "am start -n $TARGET_PKG/com.ss.android.ugc.aweme.main.MainActivity"
+            )
+        )
+        if (byAm.contains("Starting") || byAm.contains("Activity") || byAm.contains("Warning")) {
+            return byAm
+        }
+        // 兜底：monkey
+        return ShizukuHelper.exec(
             arrayOf("sh", "-c", "monkey -p $TARGET_PKG -c android.intent.category.LAUNCHER 1")
         )
+    }
 
     /** 点击屏幕坐标 */
     fun tap(x: Int, y: Int): String =

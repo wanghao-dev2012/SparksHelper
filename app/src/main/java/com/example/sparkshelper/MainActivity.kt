@@ -23,6 +23,8 @@ class MainActivity : AppCompatActivity() {
     private val permListener = Shizuku.OnRequestPermissionResultListener { _, grantResult ->
         if (grantResult == PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "Shizuku 授权成功", Toast.LENGTH_SHORT).show()
+            // 授权成功后立即绑定远程 shell 通道
+            ShizukuHelper.bindUserService()
         } else {
             Toast.makeText(this, "Shizuku 授权被拒绝", Toast.LENGTH_SHORT).show()
         }
@@ -70,6 +72,8 @@ class MainActivity : AppCompatActivity() {
 
         runBtn.setOnClickListener {
             if (ShizukuHelper.isAvailable() && ShizukuHelper.hasPermission()) {
+                // 确保远程 shell 通道已绑定
+                ShizukuHelper.bindUserService()
                 val svc = AutoClickServiceHolder.service
                 if (svc == null) {
                     Toast.makeText(this, "请先开启无障碍服务", Toast.LENGTH_SHORT).show()
@@ -96,8 +100,9 @@ class MainActivity : AppCompatActivity() {
     private fun refreshShizukuStatus() {
         statusText.text = when {
             !ShizukuHelper.isAvailable() -> "Shizuku：未运行"
-            ShizukuHelper.hasPermission() -> "Shizuku：已授权 ✅"
-            else -> "Shizuku：未授权"
+            !ShizukuHelper.hasPermission() -> "Shizuku：未授权"
+            ShizukuHelper.isRemoteReady() -> "Shizuku：已授权 ✅ 通道就绪"
+            else -> "Shizuku：已授权（通道连接中…）"
         }
     }
 
@@ -113,6 +118,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // 回到前台时确保远程通道已绑定
+        ShizukuHelper.bindUserService()
         refreshShizukuStatus()
     }
 

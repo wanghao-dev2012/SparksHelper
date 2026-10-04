@@ -33,6 +33,11 @@
             android:multiprocess="false"
             android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
 
+        <!-- Shizuku 远程 UserService（真正执行 shell 命令的通道） -->
+        <service
+            android:name=".UserService"
+            android:exported="false" />
+
         <!-- 续火花无障碍服务 -->
         <service
             android:name=".SparkService"
